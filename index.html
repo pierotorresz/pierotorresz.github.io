@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Piero Torres · alez</title>
+<meta name="description" content="Piero Torres, estudiante de Ingeniería Informática en la Universidad Europea (Madrid). Desarrollo Fell For It, un juego narrativo en Godot.">
+<meta name="author" content="Piero Torres">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Piero Torres · alez">
+<meta property="og:description" content="Estudiante de Ingeniería Informática en la UEM. Desarrollo Fell For It, un juego narrativo en Godot.">
+<meta property="og:locale" content="es_ES">
+<meta name="theme-color" content="#f3f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111314" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b4fd8'/%3E%3Ctext x='32' y='44' font-family='Arial,sans-serif' font-weight='700' font-size='34' text-anchor='middle' fill='%23fff'%3EP%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Schibsted+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IM+Fell+English+SC&display=swap">
+<style>
+:root {
+  --bg: #f3f4f1;
+  --surface: #ffffff;
+  --fg: #16181a;
+  --muted: #5f6662;
+  --line: #dde0db;
+  --accent: #2b4fd8;
+  --soft: rgba(43,79,216,.08);
+  --f-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  --f-game: "IM Fell English SC", Georgia, serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111314; --surface: #1a1d1f; --fg: #eceeeb; --muted: #9aa19c; --line: #2b2f31;
+    --accent: #8ea6ff; --soft: rgba(142,166,255,.10); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111314; --surface: #1a1d1f; --fg: #eceeeb; --muted: #9aa19c; --line: #2b2f31;
+  --accent: #8ea6ff; --soft: rgba(142,166,255,.10); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--fg);
+  font-family: var(--f-body); font-size: 17px; line-height: 1.6;
+  padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right));
+  padding-block: 0 calc(56px + env(safe-area-inset-bottom, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; }
+.wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 112px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; font-family: var(--f-display); font-weight: 700; letter-spacing: -.02em; }
+p { margin: 0; }
+a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+a:focus-visible, button:focus-visible, .shot:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--accent); color: #fff; padding: 8px 14px; border-radius: 8px; z-index: 10; }
+.skip:focus { left: 16px; }
+
+/* Barra superior */
+.top {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px 16px; flex-wrap: wrap;
+  padding-block: calc(18px + env(safe-area-inset-top, 0px)) 18px; background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.mark { font-family: var(--f-display); font-weight: 700; font-size: 19px; letter-spacing: -.01em; text-decoration: none; }
+.mark span { color: var(--muted); font-weight: 500; }
+.nav { position: relative; display: flex; gap: 4px; margin-inline: -12px; }
+.nav a { position: relative; z-index: 1; text-decoration: none; font-size: 15px; color: var(--muted); padding: 6px 12px; transition: color .25s; }
+.nav a.on, .nav a:hover { color: var(--fg); }
+.right { display: flex; align-items: center; gap: 14px; }
+.right { gap: 18px; }
+.lang { display: flex; align-items: center; gap: 2px; padding-left: 18px; border-left: 1px solid var(--line); font-size: 15px; }
+.lang button { font: inherit; color: var(--muted); background: none; border: 0; padding: 6px 4px; cursor: pointer; transition: color .25s; }
+.lang button:hover { color: var(--fg); }
+.lang button[aria-pressed="true"] { color: var(--fg); font-weight: 600; }
+.lang span { color: var(--line); user-select: none; }
+.nav .bar { position: absolute; bottom: -19px; height: 2px; background: var(--accent); left: 0; width: 0; transition: left .45s cubic-bezier(.6,0,.2,1), width .45s cubic-bezier(.6,0,.2,1); }
+
+/* Inicio */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 24rem); gap: 24px 48px; padding-top: 0; margin-top: -64px; }
+.hero .hello { display: contents; }
+.hero .tag, .hero .intro, .hero .cta { grid-column: 1; justify-self: start; }
+.hero h1 { grid-column: 1 / -1; white-space: nowrap; margin-bottom: 22px; }
+.hero .card-me { grid-column: 2; grid-row: 3 / span 3; align-self: start; margin-top: 6px; }
+.hello { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; max-width: 40rem; }
+.tag { font-family: var(--f-mono); font-size: 13px; color: var(--muted); letter-spacing: .02em; }
+.tag b { color: var(--accent); font-weight: 500; }
+.hello h1 { font-size: clamp(52px, 9vw, 100px); line-height: .95; }
+.name { position: relative; display: inline-block; }
+.name svg { position: absolute; left: -2%; bottom: -.16em; width: 104%; height: .32em; overflow: visible; }
+.name path { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.intro { font-size: 19px; line-height: 1.55; max-width: 36rem; }
+.intro.sub { color: var(--muted); font-size: 17px; margin-top: -14px; }
+.cta { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; font: 500 15px var(--f-body); text-decoration: none; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); transition: border-color .2s, transform .2s; }
+.btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+.btn.main { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .btn.main { color: #0d1020; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.main { color: #0d1020; } }
+
+.card-me { width: 100%; max-width: 30rem; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 6px 20px; margin: 0; }
+.row { display: grid; grid-template-columns: 5.25rem minmax(0, 1fr); gap: 10px; padding-block: 13px; border-bottom: 1px solid var(--line); font-size: 15.5px; }
+.row:last-child { border-bottom: 0; }
+.row dt { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); padding-top: 2px; }
+.row dd { margin: 0; min-width: 0; }
+.now { display: inline-flex; align-items: center; gap: 8px; }
+.now::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #2fa36b; flex: none; box-shadow: 0 0 0 0 rgba(47,163,107,.5); }
+
+/* Cabecera de sección */
+.sec { display: flex; flex-direction: column; gap: 32px; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+.sec-head h2 { font-size: clamp(30px, 4.5vw, 42px); }
+.sec-head span { font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
+
+/* Proyectos */
+.projects { display: flex; flex-direction: column; gap: 28px; }
+.project { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.project.flip { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+.project.flip .shot { order: 2; }
+.shot { position: relative; min-height: 360px; max-width: 100%; overflow: hidden; display: grid; place-items: center; }
+
+/* Portada Fell For It: farola que sigue al cursor */
+.shot.fell {
+  --x: 52%; --y: 34%;
+  cursor: crosshair; touch-action: pan-y;
+  background:
+    radial-gradient(circle at var(--x) var(--y), rgba(255,190,110,.95) 0 1.4%, rgba(240,150,60,.48) 7%, rgba(120,60,20,.2) 24%, transparent 46%),
+    radial-gradient(ellipse 80% 26% at 50% 98%, rgba(240,150,60,.22), transparent 70%),
+    linear-gradient(180deg, #120c08 0%, #0a0705 100%);
+}
+.shot.fell::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,.55) 100%); }
+.shot.fell .logo { position: relative; z-index: 1; font-family: var(--f-game); color: #f3e5d1; font-size: clamp(42px, 6vw, 64px); line-height: .95; text-align: center; transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+
+/* Portada ¿Estafa o no?: un SMS cuyas señales sospechosas se marcan */
+.shot.scam {
+  cursor: pointer; padding: 36px 24px;
+  background: radial-gradient(700px 360px at 50% -10%, #1e2740, #10131b 70%);
+  color: #eef1f7; font-family: var(--f-display);
+}
+.scam-in { display: flex; flex-direction: column; align-items: center; gap: 22px; width: min(340px, 100%); }
+.scam-title { font-size: clamp(36px, 5vw, 50px); font-weight: 800; line-height: .95; letter-spacing: -.03em; text-align: center; }
+.scam-title b { color: #ff5a5f; font-weight: 800; }
+.sms { width: 100%; background: #1a1f2c; border: 1px solid #2b3347; border-radius: 16px; padding: 12px 14px 14px; font-family: var(--f-body); }
+.sms-h { display: flex; justify-content: space-between; font-size: 12px; color: #9aa4b8; margin-bottom: 6px; }
+.sms p { font-size: 15px; line-height: 1.5; }
+.sus { border-bottom: 2px dashed #4b5670; border-radius: 3px; padding: 0 2px; transition: background .35s, border-color .35s; }
+.shot.scam.on .sus { background: rgba(255,90,95,.2); border-bottom: 2px solid #ff5a5f; }
+.shot.scam.on .sus:nth-child(2) { transition-delay: .12s; }
+.shot.scam.on .sus:nth-child(3) { transition-delay: .24s; }
+.verdict { font-size: 14px; font-weight: 600; color: #ff5a5f; opacity: 0; transform: translateY(6px); transition: opacity .35s .3s, transform .35s .3s; }
+.shot.scam.on .verdict { opacity: 1; transform: none; }
+
+.pinfo { padding: 32px 32px 30px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.pinfo h3 { font-size: 32px; }
+.pinfo p { color: var(--muted); font-size: 15px; }
+.pinfo p strong { color: var(--fg); font-weight: 600; }
+.status { font-family: var(--f-mono); font-size: 13px; color: var(--accent); }
+.plist { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 20px; font-size: 15px; margin: 0; padding-top: 16px; border-top: 1px solid var(--line); }
+.plist dt { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); padding-top: 2px; }
+.plist dd { margin: 0; font-family: var(--f-mono); font-size: 13px; line-height: 1.55; padding-top: 1px; }
+/* Ventana de Fell For It */
+.btn.ghost { cursor: pointer; }
+.pcta { display: flex; gap: 10px; flex-wrap: wrap; }
+.modal { border: 0; padding: 0; margin: auto; width: min(1040px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); background: #0d0b0a; color: #f3e5d1; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.6); opacity: 0; transform: translateY(24px) scale(.97); transition: opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1); }
+.modal.open { opacity: 1; transform: none; }
+.modal::backdrop { background: rgba(8,6,5,0); backdrop-filter: blur(0px); transition: background .35s ease, backdrop-filter .35s ease; }
+.modal.open::backdrop { background: rgba(8,6,5,.72); backdrop-filter: blur(6px); }
+.m-in { display: flex; flex-direction: column; max-height: calc(100dvh - 32px); overflow: auto; }
+.m-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 22px 24px 16px; }
+.m-head h3 { font-family: var(--f-game); font-weight: 400; font-size: clamp(30px, 4vw, 42px); letter-spacing: 0; line-height: 1; }
+.m-head p { font-family: var(--f-mono); font-size: 12.5px; color: rgba(243,229,209,.6); margin-top: 8px; }
+.m-close { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(243,229,209,.2); background: transparent; color: #f3e5d1; font-size: 20px; line-height: 1; cursor: pointer; transition: border-color .2s, transform .2s; }
+.m-close:hover { border-color: rgba(255,190,110,.8); transform: rotate(90deg); }
+.m-stage { position: relative; aspect-ratio: 1920 / 1009; background: #000; }
+.m-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transition: opacity .4s ease; }
+.m-stage img.fade { opacity: 0; }
+.m-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(13,11,10,.6); color: #f3e5d1; font-size: 20px; cursor: pointer; backdrop-filter: blur(4px); transition: background .2s; }
+.m-nav:hover { background: rgba(13,11,10,.85); }
+.m-prev { left: 12px; } .m-next { right: 12px; }
+.m-cap { display: flex; justify-content: space-between; gap: 12px; padding: 12px 24px 0; font-family: var(--f-mono); font-size: 13px; color: rgba(243,229,209,.75); }
+.m-thumbs { display: flex; gap: 10px; padding: 14px 24px 22px; overflow-x: auto; }
+.m-thumbs button { flex: none; width: 112px; aspect-ratio: 16 / 9; padding: 0; border: 2px solid transparent; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer; opacity: .55; transition: opacity .25s, border-color .25s; }
+.m-thumbs button:hover { opacity: .85; }
+.m-thumbs button[aria-current="true"] { opacity: 1; border-color: rgba(255,190,110,.9); }
+.m-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.m-thumbs button:focus-visible, .m-nav:focus-visible, .m-close:focus-visible { outline: 2px solid rgba(255,190,110,.9); outline-offset: 2px; }
+@media (max-width: 600px) { .m-head { padding: 18px 16px 12px; } .m-cap { padding: 10px 16px 0; } .m-thumbs { padding: 12px 16px 18px; } .m-thumbs button { width: 88px; } .m-nav { width: 38px; height: 38px; } }
+@media (prefers-reduced-motion: reduce) { .modal, .modal::backdrop, .m-stage img { transition: none; } }
+.plinks { display: flex; gap: 16px; flex-wrap: wrap; font-size: 15px; font-weight: 500; }
+
+/* Trayectoria */
+.path { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; }
+.col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.col-t { font-family: var(--f-mono); font-weight: 500; font-size: 13px; letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.steps li { display: grid; grid-template-columns: 7.25rem minmax(0, 1fr); gap: 16px; padding-block: 16px; border-top: 1px solid var(--line); }
+.steps li:last-child { border-bottom: 1px solid var(--line); }
+.when { font-family: var(--f-mono); font-size: 13px; color: var(--accent); padding-top: 3px; font-variant-numeric: tabular-nums; }
+.steps b { display: block; font-weight: 600; line-height: 1.35; }
+.steps span:not(.when) { display: block; font-size: 15px; color: var(--muted); }
+.steps p { font-size: 15px; color: var(--muted); margin-top: 8px; }
+.tools { display: grid; grid-template-columns: 7.25rem minmax(0, 1fr); gap: 16px; align-items: start; margin-top: -2px; }
+.tools-k { font-family: var(--f-mono); font-size: 13px; color: var(--muted); padding-top: 4px; }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.chips li { font-size: 13.5px; line-height: 1.4; padding: 3px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); white-space: nowrap; }
+
+/* Contacto */
+.links { display: flex; flex-direction: column; max-width: 40rem; }
+.lede { font-size: 19px; color: var(--muted); }
+.link { display: grid; grid-template-columns: 7rem minmax(0, 1fr) auto; gap: 12px; align-items: center; padding-block: 16px; border-bottom: 1px solid var(--line); }
+.link .k { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); }
+.link .v { overflow-wrap: anywhere; }
+.copy { font-family: var(--f-mono); font-size: 12.5px; background: transparent; border: 1px solid var(--line); border-radius: 999px; color: var(--fg); padding: 4px 12px; cursor: pointer; transition: border-color .2s, color .2s; }
+.copy:hover { border-color: var(--accent); color: var(--accent); }
+
+footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+.theme { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px; }
+.theme:hover { color: var(--fg); text-decoration-color: var(--accent); }
+
+@media (max-width: 820px) {
+  .project, .project.flip, .path { grid-template-columns: minmax(0, 1fr); }
+  .project.flip .shot { order: 0; }
+  .path { gap: 36px; }
+  .steps li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .tools { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .hero { display: flex; flex-direction: column; align-items: flex-start; gap: 40px; padding-top: 0; }
+  .hero .hello { display: flex; }
+  .hero h1 { white-space: normal; }
+  .hero .card-me { margin-top: 0; }
+  .hero { margin-top: -24px; }
+  .hero h1 { margin-bottom: 0; }
+  .shot { min-height: 260px; }
+  .pinfo { padding: 24px 22px; }
+  .pinfo h3 { font-size: 28px; }
+  .wrap { gap: 84px; }
+  .link { grid-template-columns: minmax(0, 1fr) auto; }
+  .link .k { grid-column: 1 / -1; }
+}
+@media (max-width: 420px) {
+  .nav a { font-size: 14px; padding: 6px 9px; }
+  .nav { margin-inline: -9px; }
+}
+@media (max-width: 600px) {
+  .right { display: contents; }
+  .lang { order: 2; margin-left: auto; padding-left: 0; border-left: 0; font-size: 14px; }
+  .nav { order: 3; flex-basis: 100%; }
+}
+
+/* Movimiento */
+@media (prefers-reduced-motion: no-preference) {
+  .rise { animation: rise .8s cubic-bezier(.2,.7,.2,1) both; }
+  .d1 { animation-delay: .05s; } .d2 { animation-delay: .15s; } .d3 { animation-delay: .3s; } .d4 { animation-delay: .42s; } .d5 { animation-delay: .55s; } .d6 { animation-delay: .65s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+  .name path { stroke-dasharray: 420; stroke-dashoffset: 420; animation: draw .9s .75s cubic-bezier(.6,0,.3,1) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .now::before { animation: pulse 2.2s ease-out infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(47,163,107,.5); } 80%, 100% { box-shadow: 0 0 0 7px rgba(47,163,107,0); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#proyectos" data-i18n="skip">Saltar a proyectos</a>
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="#inicio">Piero Torres <span>· alez</span></a>
+    <div class="right">
+    <nav class="nav" aria-label="Secciones" data-i18n-aria="navAria">
+      <a href="#inicio" data-sec="inicio" data-i18n="nav1">Inicio</a>
+      <a href="#proyectos" data-sec="proyectos" data-i18n="nav2">Proyectos</a>
+      <a href="#trayectoria" data-sec="trayectoria" data-i18n="nav3">Trayectoria</a>
+      <a href="#contacto" data-sec="contacto" data-i18n="nav4">Contacto</a>
+      <span class="bar" aria-hidden="true"></span>
+    </nav>
+    <div class="lang" id="lang" role="group" aria-label="Idioma / Language"><button type="button" data-l="es" lang="es" aria-pressed="true" aria-label="Español">ES</button><span aria-hidden="true">/</span><button type="button" data-l="en" lang="en" aria-pressed="false" aria-label="English">EN</button></div>
+    </div>
+  </header>
+
+  <main class="wrap" style="gap:inherit">
+  <section id="inicio" class="hero" aria-labelledby="hola">
+    <div class="hello">
+      <span class="tag rise d1" data-i18n="tag">Ingeniería Informática · <b>Universidad Europea</b></span>
+      <h1 id="hola" class="rise d2"><span data-i18n="hi">Hola, soy</span> <span class="name">Piero<svg viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true"><path d="M6 26 C 70 14, 150 30, 220 20 S 340 10, 394 22"/></svg></span>.</h1>
+      <p class="intro rise d3" data-i18n="intro">Estudiante de Ingeniería Informática en la Universidad Europea (Madrid), con más de cuatro años de experiencia en el sector tecnológico. Me interesa el desarrollo de software completo, desde el diseño hasta la implementación.</p>
+      <p class="intro sub rise d4" data-i18n="sub">Enganchado a los ordenadores desde que tengo uso de razón.</p>
+      <div class="cta rise d5">
+        <a class="btn main" href="#proyectos" data-i18n="cta1">Ver proyectos</a>
+        <a class="btn" href="#contacto" data-i18n="cta2">Contactar</a>
+      </div>
+    </div>
+    <dl class="card-me rise d6">
+      <div class="row"><dt data-i18n="c1">Estudio</dt><dd data-i18n="c1v">Ingeniería Informática<br>Universidad Europea (Madrid)</dd></div>
+      <div class="row"><dt data-i18n="c2">Ahora</dt><dd><span class="now" data-i18n="c2v">Desarrollando “Fell For It”</span></dd></div>
+      <div class="row"><dt data-i18n="c3">Lenguajes</dt><dd>Java · C++</dd></div>
+      <div class="row"><dt data-i18n="c4">Idiomas</dt><dd data-i18n="c4v">Español nativo · Inglés B2</dd></div>
+    </dl>
+  </section>
+
+  <section id="proyectos" class="sec" aria-labelledby="proy">
+    <div class="sec-head"><h2 id="proy" data-i18n="nav2">Proyectos</h2><span data-i18n="pcount">2 proyectos · 1 en desarrollo</span></div>
+
+    <div class="projects">
+      <article class="project" aria-labelledby="fell">
+        <div class="shot fell" id="shot" role="img" data-i18n-aria="fellAria" aria-label="Portada provisional de Fell For It: una calle de noche iluminada por una farola">
+          <span class="logo" id="logo">Fell<br>For It</span>
+        </div>
+        <div class="pinfo">
+          <span class="status" data-i18n="fStatus">En desarrollo · Proyecto independiente</span>
+          <h3 id="fell">Fell For It</h3>
+          <p data-i18n="fDesc">Un juego narrativo en primera persona, de estética low-poly. Daniel es un estudiante que vive solo y lleva una vida normal: el autobús, los vecinos, su familia, la chica con la que empieza a salir. Pero <strong>guarda un secreto</strong>, y lo que eliges día a día decide cómo termina su historia.</p>
+          <dl class="plist">
+            <dt data-i18n="fRole">Plataforma</dt><dd>PC</dd>
+            <dt data-i18n="fEngine">Motor</dt><dd>Godot 4</dd>
+            <dt data-i18n="fState">Estado</dt><dd data-i18n="fStateV">En desarrollo</dd>
+          </dl>
+          <div class="pcta">
+            <button class="btn main ghost" id="fellOpen" type="button" aria-haspopup="dialog"><span data-i18n="more">Ver más del juego</span> <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+      </article>
+
+      <article class="project flip" aria-labelledby="scam">
+        <div class="shot scam" id="scamShot" tabindex="0" role="button" aria-pressed="false" data-i18n-aria="scamAria" aria-label="Portada de ¿Estafa o no?: un SMS falso. Actívala para marcar las señales de estafa">
+          <div class="scam-in">
+            <div class="scam-title">¿Estafa<br><b>o no?</b></div>
+            <div class="sms" aria-hidden="true">
+              <div class="sms-h"><span>+34 6•• ••• •••</span><span data-i18n="now">ahora</span></div>
+              <p data-i18n="sms"><span class="sus">URGENTE:</span> tu cuenta ha sido bloqueada. Verifica tus datos <span class="sus">en las próximas 2 horas</span> aquí: <span class="sus">bit.ly/verif1ca-cuenta</span></p>
+            </div>
+            <span class="verdict" aria-hidden="true" data-i18n="verdict">3 señales de estafa</span>
+          </div>
+        </div>
+        <div class="pinfo">
+          <span class="status" data-i18n="sStatus">Prototipo jugable · Proyecto universitario</span>
+          <h3 id="scam">¿Estafa o no?</h3>
+          <p data-i18n="sDesc">Un juego educativo para <strong>aprender a reconocer estafas</strong>. El jugador vive situaciones simuladas (llamadas, chats, mensajes, webs y una app bancaria) y decide cómo responder con el tiempo en contra. Después, el juego explica qué señales delataban el engaño.</p>
+          <dl class="plist">
+            <dt data-i18n="sCtx">Contexto</dt><dd data-i18n="sCtxV">Proyecto universitario</dd>
+            <dt data-i18n="sTech">Tecnología</dt><dd>HTML · CSS · JavaScript</dd>
+            <dt data-i18n="sFmt">Formato</dt><dd data-i18n="sFmtV">Prototipo web basado en texto y decisiones</dd>
+          </dl>
+          <div class="cta">
+            <a class="btn main" href="estafa-o-no/" target="_blank" rel="noopener"><span data-i18n="play">Jugar ahora</span> <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="trayectoria" class="sec" aria-labelledby="tray">
+    <div class="sec-head"><h2 id="tray" data-i18n="nav3">Trayectoria</h2></div>
+    <div class="path">
+      <div class="col">
+        <h3 class="col-t" data-i18n="edu">Formación</h3>
+        <ol class="steps">
+          <li><span class="when" data-i18n="w1">2026 – hoy</span><div><b data-i18n="deg">Grado en Ingeniería Informática</b><span data-i18n="degV">Universidad Europea (Madrid)</span></div></li>
+          <li><span class="when" data-i18n="course">Curso</span><div><b>CCNA: Introduction to Networks</b><span>Cisco Networking Academy</span></div></li>
+        </ol>
+      </div>
+      <div class="col">
+        <h3 class="col-t" data-i18n="exp">Experiencia</h3>
+        <ol class="steps">
+          <li><span class="when" data-i18n="w2">2022 – hoy</span><div><b data-i18n="job">Gestión Web y Contenido Digital</b><span>DIGITALZ</span><p data-i18n="jobV">Webs en WordPress y Wix, catálogos de productos en Odoo y piezas gráficas para redes.</p></div></li>
+        </ol>
+        <div class="tools">
+          <span class="tools-k" data-i18n="tools">Herramientas</span>
+          <ul class="chips" aria-label="Herramientas" data-i18n-aria="tools">
+            <li>HTML</li>
+            <li>CSS</li>
+            <li>JavaScript</li>
+            <li>Git</li>
+            <li>GitHub</li>
+            <li>WordPress</li>
+            <li>Wix</li>
+            <li>Odoo</li>
+            <li>Photoshop</li>
+            <li>Premiere Pro</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contacto" class="sec" aria-labelledby="cont">
+    <div class="sec-head"><h2 id="cont" data-i18n="nav4">Contacto</h2><span data-i18n="reply">respondo en un par de horas</span></div>
+    <p class="lede" data-i18n="lede">Para proyectos, consultas o colaboraciones, siéntete libre de contactarme.</p>
+    <div class="links">
+      <div class="link"><span class="k" data-i18n="mailK">Correo</span><a class="v" id="mail" href="mailto:pierotz12@gmail.com">pierotz12@gmail.com</a><button class="copy" id="copy" type="button" data-i18n-aria="copyAria" aria-label="Copiar correo" data-i18n="copy">Copiar</button></div>
+    </div>
+    <p class="sr" id="live" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)"></p>
+  </section>
+  </main>
+
+  <dialog class="modal" id="fellModal" aria-labelledby="fellModalT">
+    <div class="m-in">
+      <div class="m-head">
+        <div><h3 id="fellModalT">Fell For It</h3><p data-i18n="mSub">Capturas del juego en desarrollo · v0.1</p></div>
+        <button class="m-close" id="fellClose" type="button" data-i18n-aria="close" aria-label="Cerrar">×</button>
+      </div>
+      <div class="m-stage">
+        <img id="mImg" src="img/fell-for-it/menu.webp" alt="" width="1600" height="841">
+        <button class="m-nav m-prev" id="mPrev" type="button" data-i18n-aria="prev" aria-label="Imagen anterior">‹</button>
+        <button class="m-nav m-next" id="mNext" type="button" data-i18n-aria="next" aria-label="Imagen siguiente">›</button>
+      </div>
+      <div class="m-cap"><span id="mCap" aria-live="polite"></span><span id="mNum"></span></div>
+      <div class="m-thumbs" id="mThumbs">
+          <button type="button" data-i="0"><img src="img/fell-for-it/menu-mini.webp" alt="" loading="lazy" width="320" height="168"></button>
+          <button type="button" data-i="1"><img src="img/fell-for-it/movil-mini.webp" alt="" loading="lazy" width="320" height="168"></button>
+          <button type="button" data-i="2"><img src="img/fell-for-it/mirilla-mini.webp" alt="" loading="lazy" width="320" height="168"></button>
+          <button type="button" data-i="3"><img src="img/fell-for-it/autobus-mini.webp" alt="" loading="lazy" width="320" height="168"></button>
+          <button type="button" data-i="4"><img src="img/fell-for-it/habitacion-mini.webp" alt="" loading="lazy" width="320" height="168"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <footer><span>© <span id="year">2026</span> Piero Torres</span><button class="theme" id="theme" type="button">Cambiar tema</button></footer>
+</div>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  // Tema claro / oscuro
+  var root = document.documentElement;
+  var themeBtn = document.getElementById("theme");
+  function isDark() {
+    var t = root.getAttribute("data-theme");
+    if (t) return t === "dark";
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function labelTheme() { var u = (typeof UI !== "undefined" && UI[lang]) ? UI[lang] : { light: "Modo claro", dark: "Modo oscuro" }; themeBtn.textContent = isDark() ? u.light : u.dark; }
+  try { var saved = localStorage.getItem("theme"); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+  labelTheme();
+  themeBtn.addEventListener("click", function () {
+    var next = isDark() ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    labelTheme();
+  });
+
+  // Copiar correo
+  var copy = document.getElementById("copy");
+  var mail = document.getElementById("mail");
+  var live = document.getElementById("live");
+  copy.addEventListener("click", function () {
+    var done = function () {
+      copy.textContent = UI[lang].copied; live.textContent = UI[lang].copiedLive;
+      setTimeout(function () { copy.textContent = lang === "en" ? EN.copy : "Copiar"; live.textContent = ""; }, 1600);
+    };
+    var select = function () {
+      var r = document.createRange(); r.selectNodeContents(mail);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(mail.textContent).then(done, select);
+    } else { select(); }
+  });
+
+  // El indicador del menú sigue a la sección visible
+  var links = Array.prototype.slice.call(document.querySelectorAll(".nav a"));
+  var bar = document.querySelector(".nav .bar");
+  var pad = function (a) { return parseFloat(getComputedStyle(a).paddingLeft) || 12; };
+  function mark(id) {
+    links.forEach(function (a) {
+      var on = a.getAttribute("data-sec") === id;
+      a.classList.toggle("on", on);
+      if (on) { var p = pad(a); bar.style.left = a.offsetLeft + p + "px"; bar.style.width = (a.offsetWidth - p * 2) + "px"; a.setAttribute("aria-current", "true"); }
+      else a.removeAttribute("aria-current");
+    });
+  }
+  mark("inicio");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) mark(e.target.id); });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    ["inicio", "proyectos", "trayectoria", "contacto"].forEach(function (id) { io.observe(document.getElementById(id)); });
+  }
+  window.addEventListener("resize", function () { var a = document.querySelector(".nav a.on"); if (a) mark(a.getAttribute("data-sec")); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { var a = document.querySelector(".nav a.on"); if (a) mark(a.getAttribute("data-sec")); });
+
+
+  // Traducción ES / EN
+  var EN = {
+    skip: "Skip to projects", navAria: "Sections",
+    nav1: "Home", nav2: "Projects", nav3: "Background", nav4: "Contact",
+    tag: "Computer Engineering · <b>Universidad Europea</b>",
+    hi: "Hi, I’m",
+    intro: "Computer Engineering student at Universidad Europea (Madrid), with over four years of experience in the tech industry. I’m interested in end-to-end software development, from design to implementation.",
+    sub: "Hooked on computers for as long as I can remember.",
+    cta1: "See projects", cta2: "Get in touch",
+    c1: "Studies", c1v: "Computer Engineering<br>Universidad Europea (Madrid)",
+    c2: "Now", c2v: "Developing “Fell For It”",
+    c3: "Coding", c4: "Languages", c4v: "Spanish (native) · English B2",
+    pcount: "2 projects · 1 in progress",
+    fellAria: "Provisional cover art for Fell For It: a street at night lit by a streetlight",
+    fStatus: "In progress · Independent project",
+    fDesc: "A first-person narrative game with a low-poly look. Daniel is a student who lives alone and leads an ordinary life: the bus, the neighbours, his family, the girl he’s just started seeing. But <strong>he’s hiding a secret</strong>, and the choices you make each day decide how his story ends.",
+    fRole: "Platform",
+    fEngine: "Engine", fState: "Status", fStateV: "In development",
+    scamAria: "Cover art for ¿Estafa o no? (Scam or not?): a fake text message. Activate it to highlight the warning signs",
+    now: "now",
+    sms: "<span class=\"sus\">URGENT:</span> your account has been locked. Verify your details <span class=\"sus\">within the next 2 hours</span> here: <span class=\"sus\">bit.ly/verify-acc0unt</span>",
+    verdict: "3 signs of a scam",
+    sStatus: "Playable prototype · University project",
+    sDesc: "An educational game that <strong>teaches you to spot scams</strong>. Players face simulated situations (phone calls, chats, text messages, websites and a banking app) and decide how to respond against the clock. Afterwards, the game explains which warning signs gave the scam away.",
+    sCtx: "Context", sCtxV: "University project", sTech: "Tech stack",
+    sFmt: "Format", sFmtV: "Web prototype driven by text and choices",
+    play: "Play now",
+    edu: "Education", w1: "2026 – present",
+    deg: "BSc in Computer Engineering", degV: "Universidad Europea (Madrid)",
+    course: "Course", exp: "Experience", w2: "2022 – present",
+    job: "Web & Digital Content Management",
+    jobV: "Websites built with WordPress and Wix, product catalogues in Odoo, and graphics for social media.",
+    tools: "Tools",
+    reply: "I usually reply within a couple of hours",
+    lede: "For projects, enquiries or collaborations, feel free to get in touch.",
+    mailK: "Email", copy: "Copy", copyAria: "Copy email",
+    more: "See more of the game", mSub: "Screenshots from the game in development · v0.1",
+    close: "Close", prev: "Previous image", next: "Next image"
+  };
+  var UI = {
+    es: { copied: "Copiado", copiedLive: "Correo copiado", light: "Modo claro", dark: "Modo oscuro", btn: "EN", btnAria: "Read in English", btnLang: "en" },
+    en: { copied: "Copied", copiedLive: "Email copied", light: "Light mode", dark: "Dark mode", btn: "ES", btnAria: "Ver en español", btnLang: "es" }
+  };
+  var lang = "es";
+  var txt = Array.prototype.slice.call(document.querySelectorAll("[data-i18n]"));
+  var ari = Array.prototype.slice.call(document.querySelectorAll("[data-i18n-aria]"));
+  txt.forEach(function (el) { el._es = el.innerHTML; });
+  ari.forEach(function (el) { el._esAria = el.getAttribute("aria-label"); });
+  var langBtns = Array.prototype.slice.call(document.querySelectorAll("#lang button"));
+  function setLang(l) {
+    lang = l;
+    txt.forEach(function (el) { var k = el.getAttribute("data-i18n"); el.innerHTML = (l === "en" && EN[k]) ? EN[k] : el._es; });
+    ari.forEach(function (el) { var k = el.getAttribute("data-i18n-aria"); el.setAttribute("aria-label", (l === "en" && EN[k]) ? EN[k] : el._esAria); });
+    root.setAttribute("lang", l);
+    langBtns.forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-l") === l ? "true" : "false"); });
+    labelTheme();
+    var a = document.querySelector(".nav a.on"); if (a) mark(a.getAttribute("data-sec"));
+    if (typeof show === "function" && typeof SHOTS !== "undefined" && mCap) show(cur, true);
+  }
+  langBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      var next = b.getAttribute("data-l"); if (next === lang) return;
+      setLang(next);
+      try { localStorage.setItem("lang", next); } catch (e) {}
+    });
+  });
+  var startLang = null;
+  try { startLang = new URLSearchParams(location.search).get("lang"); } catch (e) {}
+  if (!startLang) { try { startLang = localStorage.getItem("lang"); } catch (e) {} }
+  if (startLang === "en") setLang("en");
+
+  // Ventana "Ver más" de Fell For It
+  var SHOTS = ["menu","movil","mirilla","autobus","habitacion"];
+  var CAPS = { es: ["Menú principal","El móvil de Daniel","Mirando por la mirilla","Pausa en el autobús","La habitación de Daniel"], en: ["Main menu","Daniel’s phone","Looking through the peephole","Paused on the bus","Daniel’s bedroom"] };
+  var modal = document.getElementById("fellModal");
+  var mImg = document.getElementById("mImg"), mCap = document.getElementById("mCap"), mNum = document.getElementById("mNum");
+  var thumbs = Array.prototype.slice.call(document.querySelectorAll("#mThumbs button"));
+  var cur = 0, opener = null;
+  function show(i, instant) {
+    cur = (i + SHOTS.length) % SHOTS.length;
+    var apply = function () {
+      mImg.src = "img/fell-for-it/" + SHOTS[cur] + ".webp";
+      mImg.alt = CAPS[lang][cur];
+      mImg.classList.remove("fade");
+    };
+    if (instant || reduce) apply(); else { mImg.classList.add("fade"); setTimeout(apply, 200); }
+    mCap.textContent = CAPS[lang][cur];
+    mNum.textContent = (cur + 1) + " / " + SHOTS.length;
+    thumbs.forEach(function (b, k) { b.setAttribute("aria-current", k === cur ? "true" : "false"); b.setAttribute("aria-label", CAPS[lang][k]); });
+  }
+  function openModal() {
+    opener = document.activeElement;
+    show(cur, true);
+    if (modal.showModal) modal.showModal(); else modal.setAttribute("open", "");
+    document.documentElement.style.overflow = "hidden";
+    requestAnimationFrame(function () { requestAnimationFrame(function () { modal.classList.add("open"); }); });
+  }
+  function closeModal() {
+    modal.classList.remove("open");
+    var done = function () { if (modal.open) modal.close(); document.documentElement.style.overflow = ""; if (opener) opener.focus(); };
+    if (reduce) done(); else setTimeout(done, 380);
+  }
+  document.getElementById("fellOpen").addEventListener("click", openModal);
+  document.getElementById("fellClose").addEventListener("click", closeModal);
+  document.getElementById("mPrev").addEventListener("click", function () { show(cur - 1); });
+  document.getElementById("mNext").addEventListener("click", function () { show(cur + 1); });
+  thumbs.forEach(function (b) { b.addEventListener("click", function () { show(+b.getAttribute("data-i")); }); });
+  modal.addEventListener("cancel", function (e) { e.preventDefault(); closeModal(); });
+  modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
+  modal.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight") { e.preventDefault(); show(cur + 1); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); show(cur - 1); }
+  });
+  var sx = null;
+  mImg.parentNode.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; }, { passive: true });
+  mImg.parentNode.addEventListener("touchend", function (e) { if (sx === null) return; var dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) show(cur + (dx < 0 ? 1 : -1)); sx = null; });
+
+  // La farola sigue al cursor (o al dedo) sobre la portada de Fell For It
+  var shot = document.getElementById("shot");
+  var logo = document.getElementById("logo");
+  var tx = 52, ty = 34, cx = 52, cy = 34, raf = null;
+  function step() {
+    cx += (tx - cx) * 0.12; cy += (ty - cy) * 0.12;
+    shot.style.setProperty("--x", cx.toFixed(2) + "%");
+    shot.style.setProperty("--y", cy.toFixed(2) + "%");
+    logo.style.transform = "translate(" + ((cx - 50) * -0.12).toFixed(2) + "px," + ((cy - 40) * -0.08).toFixed(2) + "px)";
+    if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) raf = requestAnimationFrame(step); else raf = null;
+  }
+  function aim(x, y) { tx = x; ty = y; if (reduce) { cx = tx; cy = ty; step(); return; } if (!raf) raf = requestAnimationFrame(step); }
+  function fromEvent(e) {
+    var r = shot.getBoundingClientRect();
+    aim((e.clientX - r.left) / r.width * 100, (e.clientY - r.top) / r.height * 100);
+  }
+  shot.addEventListener("pointermove", fromEvent);
+  shot.addEventListener("pointerdown", fromEvent);
+  shot.addEventListener("pointerleave", function () { aim(52, 34); });
+
+  // ¿Estafa o no?: marcar las señales sospechosas del SMS
+  var scam = document.getElementById("scamShot");
+  var canHover = window.matchMedia && window.matchMedia("(hover: hover)").matches;
+  function setScam(on) { scam.classList.toggle("on", on); scam.setAttribute("aria-pressed", on ? "true" : "false"); }
+  scam.addEventListener("click", function () { if (!canHover) setScam(!scam.classList.contains("on")); });
+  scam.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setScam(!scam.classList.contains("on")); } });
+  if (canHover) {
+    scam.addEventListener("mouseenter", function () { setScam(true); });
+    scam.addEventListener("mouseleave", function () { setScam(false); });
+  }
+})();
+</script>
+</body>
+</html>
